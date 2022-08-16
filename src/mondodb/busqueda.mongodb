@@ -34,20 +34,20 @@ use('canastadb_marlon');
     'COSTO_CANASTA':0,
     'RESTRICCION_O_EXCEDENTE_EN_EL_CONSUMO':0,
     'RESTRICCION_EXCENDENTE_PORCENTUAL':0
-})
+}).limit(100).toArray();
 
 /*******************************************************************************************************************/
 
 /**Cual fue el costo de la Canasta básica en el gobierno de Jamil Mahuad W**/
 use('canastadb_marlon');
-/*db.data.find({GOBIERNO: 'Jamil Mahuad W.'}, {
+/**/db.data.find({GOBIERNO: 'Jamil Mahuad W.'}, {
     '_id':0,
     'YEAR':0,
     'MES':0,
     'INGRESO_FAMILIAR_MENSUAL':0,
     'RESTRICCION_O_EXCEDENTE_EN_EL_CONSUMO':0,
     'RESTRICCION_EXCENDENTE_PORCENTUAL':0
-}).limit(100).toArray();*/
+}).limit(100).toArray();
 
 /*******************************************************************************************************************/
 
@@ -64,7 +64,6 @@ db.data.find({COSTO_CANASTA: {$gt:700}}, {
     'RESTRICCION_O_EXCEDENTE_EN_EL_CONSUMO':0,
     'RESTRICCION_EXCENDENTE_PORCENTUAL':0
 }).limit(100).toArray();
-db.data.find({}).limit(100).toArray();
 
 /**AQUI MOSTRAMOS LOS DOCUMENTOS EVITANDO LOS DUPLICADOS**/
 
@@ -113,8 +112,9 @@ db.data.aggregate([
     }
 ])
 
-/**En qué gobierno el costo de la Canasta básica fue menor a los 200**/
 /*******************************************************************************************************************/
+/**En qué gobierno el costo de la Canasta básica fue menor a los 200**/
+
 /**CONSULTA SIMPLE**/
 /**/use('canastadb_marlon');
 db.data.find({COSTO_CANASTA: {$lt:200}}, {
@@ -126,8 +126,6 @@ db.data.find({COSTO_CANASTA: {$lt:200}}, {
     'RESTRICCION_O_EXCEDENTE_EN_EL_CONSUMO':0,
     'RESTRICCION_EXCENDENTE_PORCENTUAL':0
 }).limit(100).toArray();
-db.data.find({}).limit(100).toArray();
-
 
 /**CONSULTA ESTRUCTURADA**/
 /**/use('canastadb_marlon');
@@ -175,7 +173,10 @@ db.data.find({"COSTO_CANASTA": {$lt:200}}).count();
 
 /**Que gobiernos estuvieron antes de 1982 y después del 2008**/
 use('canastadb_marlon');
-//db.data.find({"YEAR": {$lte:1982}}).limit(10000).toArray();
+/**CONSULTA SIMPLE**/
+//db.data.find({$or:[{"YEAR": {$lte:1982}},{"YEAR": {$gte:2008}}]}).limit(10000).toArray();
+
+/**CONSULTA ESTRUCTURADA**/
 db.data.aggregate([
     {
         "$match": {$or:[{"YEAR": {$lte:1982}},{"YEAR": {$gte:2008}}]} // filtramos unicamente los datos que cumplen la condicion
