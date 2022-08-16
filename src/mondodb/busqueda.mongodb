@@ -1,0 +1,206 @@
+/*
+$eq: igual que (equal)
+$ne: distinto de (not equal)
+$gt: valores mayores que (greater than)
+$gte: valores mayores o iguales que (greater than or equal)
+$lt: valores menores que (lower than)
+$lte: valores menores o iguales que (lower than or equal)
+$in: sus valores se encuentran dentro del array especificado. Por ejemplo: { "pais": { $in: ["España", "Francia"] }} mostrará todos los documentos cuyo campo pais sea España o Francia
+$nin: operación contraria a $in, obtiene los documentos cuyo valor NO esté en el array
+.sort para ordenar los resultados 1 asendente -1 desendente
+.pretty mejora la visualizacion de los datos
+*/
+
+/*******************************************************************************************************************/
+
+/**Cuáles fueron los meses de gobierno de León Febres Cordero, según los documentos de la bd**/
+use('canastadb_marlon');
+/**/db.data.find({GOBIERNO:'Leon Febres Cordero'},
+{'_id':0,
+    'YEAR':0,
+    'COSTO_CANASTA':0,
+    'INGRESO_FAMILIAR_MENSUAL':0,
+    'RESTRICCION_O_EXCEDENTE_EN_EL_CONSUMO':0,
+    'RESTRICCION_EXCENDENTE_PORCENTUAL':0
+}).limit(100).toArray();
+
+/*******************************************************************************************************************/
+
+/**Quien estaba como gobierno en el año de 1989 y cual fue el ingreso familiar mensual.**/
+use('canastadb_marlon');
+/**/db.data.find({YEAR: 1989},{
+    '_id':0,
+    'MES':0,
+    'COSTO_CANASTA':0,
+    'RESTRICCION_O_EXCEDENTE_EN_EL_CONSUMO':0,
+    'RESTRICCION_EXCENDENTE_PORCENTUAL':0
+})
+
+/*******************************************************************************************************************/
+
+/**Cual fue el costo de la Canasta básica en el gobierno de Jamil Mahuad W**/
+use('canastadb_marlon');
+/*db.data.find({GOBIERNO: 'Jamil Mahuad W.'}, {
+    '_id':0,
+    'YEAR':0,
+    'MES':0,
+    'INGRESO_FAMILIAR_MENSUAL':0,
+    'RESTRICCION_O_EXCEDENTE_EN_EL_CONSUMO':0,
+    'RESTRICCION_EXCENDENTE_PORCENTUAL':0
+}).limit(100).toArray();*/
+
+/*******************************************************************************************************************/
+
+/**En qué gobierno el costo de la Canasta básica fue mayor a 700**/
+
+/**CONSULTA SIMPLE**/
+/**/use('canastadb_marlon');
+db.data.find({COSTO_CANASTA: {$gt:700}}, {
+    '_id':0,
+    'YEAR':0,
+    'MES':0,
+    'COSTO_CANASTA':0,
+    'INGRESO_FAMILIAR_MENSUAL':0,
+    'RESTRICCION_O_EXCEDENTE_EN_EL_CONSUMO':0,
+    'RESTRICCION_EXCENDENTE_PORCENTUAL':0
+}).limit(100).toArray();
+db.data.find({}).limit(100).toArray();
+
+/**AQUI MOSTRAMOS LOS DOCUMENTOS EVITANDO LOS DUPLICADOS**/
+
+/**
+    --$match = Filtra los documentos para pasar solo los documentos que coinciden con las condiciones 
+    especificadas a la siguiente etapa de canalización.
+
+    --$project = Pasa los documentos con los campos solicitados a la siguiente etapa de la canalización. 
+    Los campos especificados pueden ser campos existentes de los documentos de entrada o campos recién 
+    calculados.
+
+    --$unwind = Deconstruye un campo de matriz a partir de los documentos de entrada para generar un 
+    documento para cada elemento. Cada documento de salida es el documento de entrada con el valor del 
+    campo de matriz reemplazado por el elemento.
+
+    --$group = La $group separa los documentos en grupos según una "clave de grupo". 
+    El resultado es un documento para cada clave de grupo única.
+
+**/
+/**/use('canastadb_marlon');
+db.data.aggregate([
+    {
+        "$match": {"COSTO_CANASTA": {$gt:700}} // filtramos unicamente los datos que cumplen la condicion
+    },
+    {
+        "$project": {
+            '_id':0,
+            'YEAR':0,
+            'MES':0,
+            'INGRESO_FAMILIAR_MENSUAL':0,
+            'RESTRICCION_O_EXCEDENTE_EN_EL_CONSUMO':0,
+            'RESTRICCION_EXCENDENTE_PORCENTUAL':0
+        }  // espesificamos que campos quiero visualizar
+    },
+    {
+        "$unwind": "$GOBIERNO",
+        //"$unwind": "$COSTO_CANASTA" // separamos el arreglo por documentos
+    },
+    {
+        "$group": {                  
+            "_id": "nuevo_id", // es necesario crear un nuevo _id para el nuevo documento
+            "GOBIERNO": {
+                "$addToSet": "$GOBIERNO"// agregamos los nuevos datos a grupo que en este caso son los gobiernos
+            }, 
+        }
+    }
+])
+
+/**En qué gobierno el costo de la Canasta básica fue menor a los 200**/
+/*******************************************************************************************************************/
+/**CONSULTA SIMPLE**/
+/**/use('canastadb_marlon');
+db.data.find({COSTO_CANASTA: {$lt:200}}, {
+    '_id':0,
+    'YEAR':0,
+    'MES':0,
+    'COSTO_CANASTA':0,
+    'INGRESO_FAMILIAR_MENSUAL':0,
+    'RESTRICCION_O_EXCEDENTE_EN_EL_CONSUMO':0,
+    'RESTRICCION_EXCENDENTE_PORCENTUAL':0
+}).limit(100).toArray();
+db.data.find({}).limit(100).toArray();
+
+
+/**CONSULTA ESTRUCTURADA**/
+/**/use('canastadb_marlon');
+db.data.aggregate([
+    {
+        "$match": {"COSTO_CANASTA": {$lt:200}} // filtramos unicamente los datos que cumplen la condicion
+    },
+    {
+        "$project": {
+            '_id':0,
+            'YEAR':0,
+            'MES':0,
+            'INGRESO_FAMILIAR_MENSUAL':0,
+            'RESTRICCION_O_EXCEDENTE_EN_EL_CONSUMO':0,
+            'RESTRICCION_EXCENDENTE_PORCENTUAL':0
+        }  // espesificamos que campos quiero visualizar
+    },
+    {
+        "$unwind": "$GOBIERNO",
+        //"$unwind": "$COSTO_CANASTA" // separamos el arreglo por documentos
+    },
+    {
+        "$group": {                  
+            "_id": "nuevo_id", // es necesario crear un nuevo _id para el nuevo documento
+            "GOBIERNO": {
+                "$addToSet": "$GOBIERNO"// agregamos los nuevos datos a grupo que en este caso son los gobiernos
+            }, 
+        }
+    }
+])
+
+/*******************************************************************************************************************/
+
+/**Cuantos documentos tienen costo de la Canasta básica mayor a 700**/
+use('canastadb_marlon');
+db.data.find({"COSTO_CANASTA": {$gt:700}}).count();
+
+/*******************************************************************************************************************/
+
+/**Cuentos documentos tienen el costo de la Canasta básica menor a los 200**/
+use('canastadb_marlon');
+db.data.find({"COSTO_CANASTA": {$lt:200}}).count();
+
+/********************************************************************************************************************/
+
+/**Que gobiernos estuvieron antes de 1982 y después del 2008**/
+use('canastadb_marlon');
+//db.data.find({"YEAR": {$lte:1982}}).limit(10000).toArray();
+db.data.aggregate([
+    {
+        "$match": {$or:[{"YEAR": {$lte:1982}},{"YEAR": {$gte:2008}}]} // filtramos unicamente los datos que cumplen la condicion
+    },
+    {
+        "$project": {
+            '_id':0,
+            'YEAR':0,
+            'MES':0,
+            'INGRESO_FAMILIAR_MENSUAL':0,
+            'RESTRICCION_O_EXCEDENTE_EN_EL_CONSUMO':0,
+            'RESTRICCION_EXCENDENTE_PORCENTUAL':0
+        }  // espesificamos que campos quiero visualizar
+    },
+    {
+        "$unwind": "$GOBIERNO",
+        //"$unwind": "$COSTO_CANASTA" // separamos el arreglo por documentos
+    },
+    {
+        "$group": {                  
+            "_id": "nuevo_id", // es necesario crear un nuevo _id para el nuevo documento
+            "GOBIERNO": {
+                "$addToSet": "$GOBIERNO"// agregamos los nuevos datos a grupo que en este caso son los gobiernos
+            }, 
+        }
+    }
+])
+
